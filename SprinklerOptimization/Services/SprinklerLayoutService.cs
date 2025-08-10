@@ -289,9 +289,149 @@ namespace SprinklerOptimization.Services
             return samplePoints;
         }
 
+
+        /// <summary>
+        /// Pipe proximity optimization strategy
+        /// Minimizes total connection distance while maintaining coverage
+        /// </summary>
+        private List<Point> CalculatePipeProximityLayout(List<Point> roomCorners, List<Pipe> waterPipes)
+        {
+            _logger.LogDebug("Calculating pipe proximity optimized layout");
+
+            var sprinklers = new List<Point>();
+            var bounds = PointUtils.CalculateRoomBoundary(roomCorners);
+
+            // Create candidate positions near water pipes
+            var candidates = new List<Point>();
+
+            foreach (var pipe in waterPipes)
+            {
+                // Sample points along each pipe and project to ceiling
+                var sampleCount = Math.Max(3, (int)(pipe.Length / _configuration.SprinklerSpacing));
+
+                for (int i = 0; i <= sampleCount; i++)
+                {
+                    var t = (double)i / sampleCount;
+                    var pipePoint = pipe.Start.Add(pipe.Direction.Scale(t));
+                    var candidate = new Point(pipePoint.X, pipePoint.Y, _configuration.CeilingHeight);
+
+                    if (PointUtils.IsPointInBoundary(candidate, roomCorners) &&
+                        PointUtils.DoesPointMaintainClearance(candidate, roomCorners, _configuration.WallClearance))
+                    {
+                        candidates.Add(candidate);
+                    }
+                }
+            }
+
+            // Select candidates that maintain proper spacing
+            candidates = candidates.OrderBy(c => waterPipes.Min(p => p.ShortestDistanceToPoint(c))).ToList();
+
+            foreach (var candidate in candidates)
+            {
+                bool hasConflict = sprinklers.Any(existing =>
+                    existing.Distance2DTo(candidate) < _configuration.SprinklerSpacing);
+
+                if (!hasConflict)
+                {
+                    sprinklers.Add(candidate);
+                }
+            }
+
+            _logger.LogDebug("Pipe proximity layout: {Count} sprinklers placed", sprinklers.Count);
+            return sprinklers;
+        }
+
+        /// <summary>
+        /// Calculate optimal pipe connections for all sprinklers
+        /// Implements efficient nearest-neighbor search
+        /// </summary>
+        private Dictionary<Point, Point> CalculateOptimalConnectionPoints(List<Point> sprinklers, List<Pipe> waterPipes)
+        {
+            var connections = new Dictionary<Point, Point>();
+
+            foreach (var sprinkler in sprinklers)
+            {
+                Point bestConnection = new Point(0,0,0);
+                double minDistance = double.MaxValue;
+
+                foreach (var pipe in waterPipes)
+                {
+                    var connectionPoint = pipe.GetClosestPoint(sprinkler);
+                    var distance = sprinkler.DistanceTo(connectionPoint);
+
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        bestConnection = connectionPoint;
+                    }
+                }
+
+                connections[sprinkler] = bestConnection;
+            }
+
+            return connections;
+        }
+
+        private Dictionary<int, int> CalculateOptimalConnectionPipe(List<Point> sprinklers, List<Pipe> waterPipes)
+        {
+            Dictionary<int, int> connections = new();
+            for(int i = 0; i<sprinklers.Count; i++)
+            {
+                int bestPipe = 0;
+                double minDistance = Double.MaxValue;
+
+                for(int j = 0; i<waterPipes.Count; j++)
+                {
+                    var connectionPoint = waterPipes[j].GetClosestPoint(sprinklers[i]);
+                    var distance = sprinklers[i].DistanceTo(connectionPoint);
+
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        bestPipe = j;
+                    }
+                }
+
+                connections[i] = bestPipe;
+            }
+
+            return connections;
+        }
+
         public bool ValidateLayout(SprinklerLayoutResults result, out string validationMessage)
         {
-            throw new NotImplementedException();
+            var issues = new List<string>();
+
+            if (result.SprinklerPositions.Count == 0)
+            {
+                issues.Add("No sprinklers placed");
+            }
+
+            // Check minimum spacing requirements
+            for (int i = 0; i < result.SprinklerPositions.Count; i++)
+            {
+                for (int j = i + 1; j < result.SprinklerPositions.Count; j++)
+                {
+                    var distance = result.SprinklerPositions[i].Distance2DTo(result.SprinklerPositions[j]);
+                    if (distance < _configuration.SprinklerSpacing - 1e-6) // Small tolerance for floating point
+                    {
+                        issues.Add($"Sprinklers {i + 1} and {j + 1} are too close ({distance:F2} mm < {_configuration.SprinklerSpacing} mm)");
+                    }
+                }
+            }
+
+            // Check connection distances
+            foreach (var kvp in result.ConnectionPoints)
+            {
+                var connectionDistance = kvp.Key.DistanceTo(kvp.Value);
+                if (connectionDistance > _configuration.MaximumConnectionDistance)
+                {
+                    issues.Add($"Connection distance {connectionDistance:F2} mm exceeds maximum {_configuration.MaximumConnectionDistance} mm");
+                }
+            }
+
+            validationMessage = string.Join("; ", issues);
+            return !issues.Any();
         }
 
     }
