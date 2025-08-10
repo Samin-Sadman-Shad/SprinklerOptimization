@@ -36,6 +36,7 @@ namespace SprinklerOptimization.Services
             List<Pipe> pipes,
             Enums.Enums.SprinklerLayouts layout = Enums.Enums.SprinklerLayouts.Grid)
         {
+            var startTime = DateTime.UtcNow;
             try
             {
                 if (roomCorners is null || roomCorners.Count < 3)
@@ -52,27 +53,51 @@ namespace SprinklerOptimization.Services
                 {
                     SprinklerLayouts.Grid => CalculateSprinklerPositionForGridLayout(roomCorners),
                     SprinklerLayouts.MaximumCoverage => CalculateOptimizedCoverageLayout(roomCorners),
-                    //SprinklerLayouts.MinimumPipeDistance => CalculatePipeProximityLayout(roomCorners, waterPipes),
+                    SprinklerLayouts.MinimumPipeDistance => CalculatePipeProximityLayout(roomCorners, pipes),
                     _ => throw new ArgumentException($"Unknown strategy: {layout}")
                 };
 
-                /*
+
+                // Calculate optimal connections
+                var connectionPoints = CalculateOptimalConnectionPoints(sprinklers, pipes);
+                //var closestPipes = CalculateOptimalConnectionPipe(sprinklers, pipes);
+
+                // Calculate quality metrics
+                var metrics = _metricsCalculationService.CalculateLayoutMetrics(sprinklers, connectionPoints, roomCorners);
+
                 var result = new SprinklerLayoutResults
                 {
                     SprinklerPositions = sprinklers,
-                    ConnectionPoints = connections,
+                    ConnectionPoints = connectionPoints,
                     StrategyUsed = layout,
-                    QualityMetrics = metrics,
+                    Metrics = metrics,
                     CalculationTimeMs = (DateTime.UtcNow - startTime).TotalMilliseconds,
                     IsValid = true
                 };
-                */
-                var result = new SprinklerLayoutResults();
+
+                // Validate result
+                if (!ValidateLayout(result, out string validationMessage))
+                {
+                    result.IsValid = false;
+                    result.ValidationMessage = validationMessage;
+                    _logger.LogWarning("Layout validation failed: {Message}", validationMessage);
+                }
+
+                _logger.LogInformation("Layout calculation completed. {Count} sprinklers placed in {Time:F2}ms",
+                    sprinklers.Count, result.CalculationTimeMs);
+
                 return result;
+
             }
             catch (Exception ex) 
             {
-                throw ex;
+                _logger.LogError(ex, "Error calculating sprinkler layout");
+                return new SprinklerLayoutResults
+                {
+                    IsValid = false,
+                    ValidationMessage = $"Calculation failed: {ex.Message}",
+                    CalculationTimeMs = (DateTime.UtcNow - startTime).TotalMilliseconds
+                };
             }
         }
 
@@ -374,6 +399,7 @@ namespace SprinklerOptimization.Services
 
         private Dictionary<int, int> CalculateOptimalConnectionPipe(List<Point> sprinklers, List<Pipe> waterPipes)
         {
+
             Dictionary<int, int> connections = new();
             for(int i = 0; i<sprinklers.Count; i++)
             {

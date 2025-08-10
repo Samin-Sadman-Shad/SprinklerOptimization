@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SprinklerOptimization.Services
+namespace SprinklerOptimization.Obsolete
 {
     internal class SprinklerCalculator
     {
@@ -109,7 +109,7 @@ namespace SprinklerOptimization.Services
                 Point p1 = ceilingCorners[i];
                 Point p2 = ceilingCorners[(i + 1) % ceilingCorners.Count];
 
-                if (((p1.Y <= point.Y) && (point.Y < p2.Y)) || ((p2.Y <= point.Y) && (point.Y < p1.Y)))
+                if (p1.Y <= point.Y && point.Y < p2.Y || p2.Y <= point.Y && point.Y < p1.Y)
                 {
                     double intersectionX = p1.X + (point.Y - p1.Y) * (p2.X - p1.X) / (p2.Y - p1.Y);
                     if (point.X < intersectionX)
@@ -117,7 +117,7 @@ namespace SprinklerOptimization.Services
                 }
             }
 
-            return (intersectionCount % 2) == 1;
+            return intersectionCount % 2 == 1;
         }
 
         private double DistanceFromPointToLineSegment(Point point, Point lineStart, Point lineEnd)
@@ -141,7 +141,7 @@ namespace SprinklerOptimization.Services
 
         private Point FindNearestPipeConnection(Point sprinkler)
         {
-            Point nearestConnection = new Point();
+            Point nearestConnection = new Point(0, 0, 0);
             double minDistance = double.MaxValue;
 
             foreach (var pipe in waterPipes)

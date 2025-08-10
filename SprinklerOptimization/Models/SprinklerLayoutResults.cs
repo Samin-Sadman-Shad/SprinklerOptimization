@@ -12,7 +12,7 @@ namespace SprinklerOptimization.Models
         public IList<Point> SprinklerPositions { get; set; } = new List<Point>();
         public IDictionary<Point, Point> ConnectionPoints { get; set; } = new Dictionary<Point, Point>();
         public SprinklerLayouts StrategyUsed { get; set; }
-        public LayoutMetrics metrics { get; set; } = new LayoutMetrics();
+        public LayoutMetrics Metrics { get; set; } = new LayoutMetrics();
         public double CalculationTimeMs { get; set; }
         public bool IsValid { get; set; }
         public string ValidationMessage { get; set; } = string.Empty;
