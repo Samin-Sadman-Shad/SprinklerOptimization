@@ -67,8 +67,8 @@ namespace SprinklerOptimization.Helpers
             {
                 throw new ArgumentNullException($"{nameof(point)} can not be null");
             }
-            var lineSegment = end.Substract(start);
-            var toPoint = point.Substract(start);
+            var lineSegment = end.Subtract(start);
+            var toPoint = point.Subtract(start);
 
             var segmentLengthSquare = lineSegment.DotProduct(lineSegment);
 
@@ -88,6 +88,15 @@ namespace SprinklerOptimization.Helpers
             return point.Distance2DTo(closest);
         }
 
+
+        /// <summary>
+        /// Raycast algorithm to detect if a point lies inside a closed boundary
+        /// </summary>
+        /// <param name="point"></param>
+        /// <param name="boundary"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public static bool IsPointInBoundary(Point point, List<Point> boundary)
         {
             if(boundary == null || boundary.Count < 3)

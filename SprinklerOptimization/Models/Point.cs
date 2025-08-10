@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SprinklerOptimization.Models
 {
-    public class Point
+    public class Point:IEquatable<Point>
     {
         public double X { get; set; }
         public double Y { get; set; }
@@ -42,7 +42,7 @@ namespace SprinklerOptimization.Models
             return Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2) );
         }
 
-        public Point Substract(Point other) => new Point(X-other.X, Y-other.Y, Z-other.Z);
+        public Point Subtract(Point other) => new Point(X-other.X, Y-other.Y, Z-other.Z);
         public Point Add(Point other) => new Point(X + other.X, Y + other.Y, Z + other.Z);
         public Point Scale(double factor) => new Point(X * factor, Y * factor, Z * factor);
         public double DotProduct(Point other) => X * other.X + Y * other.Y + Z * other.Z;
@@ -63,7 +63,7 @@ namespace SprinklerOptimization.Models
             var dy = Math.Abs(Y - other.Y);
             var dz = Math.Abs(Z - other.Z);
 
-            return ((dx < Double.MinValue) && (dy < Double.MinValue) && (dz < Double.MinValue));
+            return ((dx < 1e-9) && (dy < 1e-9) && (dz < 1e-9));
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)

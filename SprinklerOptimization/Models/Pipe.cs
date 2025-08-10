@@ -12,7 +12,7 @@ namespace SprinklerOptimization.Models
         public Point End { get; set; }
 
         public double Length => Start.DistanceTo(End);
-        public Point Direction => End.Substract(Start);
+        public Point Direction => End.Subtract(Start);
 
         public Point MidPoint
         {
