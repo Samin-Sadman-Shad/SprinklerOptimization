@@ -34,6 +34,14 @@ namespace SprinklerOptimization.Models
             return Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2) + Math.Pow(dz, 2));
         }
 
+        public double Distance2DTo(Point other)
+        {
+            double dx = X - other.X;
+            double dy = Y - other.Y;
+
+            return Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2) );
+        }
+
         public Point Substract(Point other) => new Point(X-other.X, Y-other.Y, Z-other.Z);
         public Point Add(Point other) => new Point(X + other.X, Y + other.Y, Z + other.Z);
         public Point Scale(double factor) => new Point(X * factor, Y * factor, Z * factor);
