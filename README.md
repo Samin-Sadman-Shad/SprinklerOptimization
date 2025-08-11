@@ -1,23 +1,23 @@
 A C# application that calculates optimal fire sprinkler placements for irregular room geometries using advanced spatial reasoning and multiple optimization strategies.
-🏗️ System Overview
+🏗️ **System Overview**
 Automatically generates fire sprinkler layouts considering water pipe locations, wall clearances, and coverage requirements using professional software engineering practices.
 ✨ Key Features
 
-Three Core Placement Strategies
+**Three Core Placement Strategies**
 
 Uniform Grid: Systematic grid placement ensuring code compliance
 Optimized Coverage: Geometry-based placement maximizing room coverage
 Pipe Proximity: Cost-optimized placement minimizing connection distances
 
 
-Advanced Spatial Reasoning
+**Advanced Spatial Reasoning**
 
 3D geometric calculations and vector operations
 Point-in-polygon testing with ray casting algorithm
 Optimal pipe connection point determination
 
 
-Professional Architecture
+**Professional Architecture**
 
 Dependency injection pattern
 Interface-driven design
@@ -26,7 +26,7 @@ Comprehensive unit testing
 Quality metrics calculation
 
 
-🚀 Quick Start
+🚀 **Quick Start**
 Prerequisites
 
 .NET 8.0 or later
@@ -39,10 +39,10 @@ git clone <repository-url>
 cd SprinklerLayoutSystem
 dotnet build
 
-# Run the application
+Run the application
 dotnet run
 
-🔧 Core Strategies
+🔧 **Core Strategies**
 1. Uniform Grid Strategy
 Creates systematic grid-based sprinkler placement:
 
