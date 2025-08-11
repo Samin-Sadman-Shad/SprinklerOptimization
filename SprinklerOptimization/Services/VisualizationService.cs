@@ -1,136 +1,147 @@
-﻿using SprinklerOptimization.Contracts;
-using SprinklerOptimization.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OxyPlot;
+using OxyPlot.Series;
+using OxyPlot.Axes;
+using OxyPlot.Annotations;
+using SprinklerOptimization.Contracts;
+using SprinklerOptimization.Models;
 
-namespace SprinklerOptimization.Services
+public class VisualizationService:IVisualizationService
 {
-    public class VisualizationService : IVisualizationService
+    public void Generate2DVisualization(
+        SprinklerLayoutResults result,
+        List<SprinklerOptimization.Models.Point> roomCorners,
+        List<Pipe> waterPipes,
+        string outputFilePath = "SprinklerLayout2D.png")
     {
-        private readonly IPolygonService _geometry;
+        var plotModel = new PlotModel { Title = "Sprinkler Layout Visualization" };
+        plotModel.Background = OxyColors.White;
 
-        public VisualizationService(IPolygonService geometry)
+        // --- Room Boundary as PolygonAnnotation ---
+        var roomPolygon = new PolygonAnnotation
         {
-            _geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
+            Stroke = OxyColors.Black,
+            StrokeThickness = 2,
+            Fill = OxyColors.Undefined
+        };
+        foreach (var pt in roomCorners)
+            roomPolygon.Points.Add(new DataPoint(pt.X, pt.Y));
+        // Close the polygon by repeating the first point
+        roomPolygon.Points.Add(new DataPoint(roomCorners[0].X, roomCorners[0].Y));
+        plotModel.Annotations.Add(roomPolygon);
+
+        // --- Water Pipes as LineSeries ---
+        foreach (var pipe in waterPipes)
+        {
+            var lineSeries = new LineSeries
+            {
+                Color = OxyColors.Blue,
+                StrokeThickness = 3,
+                MarkerType = MarkerType.None,
+            };
+
+            lineSeries.Points.Add(new DataPoint(pipe.Start.X, pipe.Start.Y));
+            lineSeries.Points.Add(new DataPoint(pipe.End.X, pipe.End.Y));
+
+            plotModel.Series.Add(lineSeries);
         }
 
-        /// <summary>
-        /// Generate ASCII art visualization of the sprinkler layout
-        /// Useful for quick visual validation and debugging
-        /// </summary>
-        public string GenerateAsciiVisualization(SprinklerLayoutResults result, List<Point> roomCorners, List<Pipe> waterPipes)
+        // --- Sprinklers as ScatterSeries ---
+        var sprinklers = new ScatterSeries
         {
-            if (!roomCorners.Any()) return "No room data available";
+            MarkerFill = OxyColors.Red,
+            MarkerType = MarkerType.Circle,
+            MarkerSize = 5
+        };
 
-            var sb = new StringBuilder();
-            sb.AppendLine("SPRINKLER LAYOUT VISUALIZATION");
-            sb.AppendLine("===============================");
-            sb.AppendLine();
-
-            // Calculate bounds
-            var minX = roomCorners.Min(p => p.X);
-            var maxX = roomCorners.Max(p => p.X);
-            var minY = roomCorners.Min(p => p.Y);
-            var maxY = roomCorners.Max(p => p.Y);
-
-            const int width = 80;
-            const int height = 25;
-
-            var scaleX = (width - 2) / (maxX - minX);
-            var scaleY = (height - 2) / (maxY - minY);
-
-            // Initialize grid
-            var grid = new char[height, width];
-            for (int i = 0; i < height; i++)
-                for (int j = 0; j < width; j++)
-                    grid[i, j] = ' ';
-
-            // Draw room boundary
-            for (int i = 0; i < roomCorners.Count; i++)
-            {
-                var p1 = roomCorners[i];
-                var p2 = roomCorners[(i + 1) % roomCorners.Count];
-                DrawLine(grid, p1, p2, minX, minY, scaleX, scaleY, width, height, '█');
-            }
-
-            // Draw water pipes
-            foreach (var pipe in waterPipes)
-            {
-                DrawLine(grid, pipe.Start, pipe.End, minX, minY, scaleX, scaleY, width, height, '║');
-            }
-            char sprinklerChar = '⬤';
-            int radius = 1;
-            // Draw sprinklers
-            foreach (var sprinkler in result.SprinklerPositions)
-            {
-                var x = (int)Math.Round((sprinkler.X - minX) * scaleX);
-                var y = (int)Math.Round((sprinkler.Y - minY) * scaleY);
-
-                if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
-                {
-                    //grid[height - 1 - y, x] = '◎'; // Flip Y for proper display
-                    for (int dy = -radius; dy <= radius; dy++)
-                    {
-                        for (int dx = -radius; dx <= radius; dx++)
-                        {
-                            double adjDy = dy * 0.5; // Fix aspect ratio
-                            if (Math.Sqrt(dx * dx + adjDy * adjDy) <= radius)
-                            {
-                                int gx = x + dx;
-                                int gy = height - 1 - y + dy;
-                                if (gx >= 0 && gx < width && gy >= 0 && gy < height)
-                                    grid[gy, gx] = sprinklerChar;
-                            }
-                        }
-                    }
-                }
-                    
-            }
-
-            // Convert grid to string
-            for (int i = 0; i < height; i++)
-            {
-                for (int j = 0; j < width; j++)
-                    sb.Append(grid[i, j]);
-                sb.AppendLine();
-            }
-
-            sb.AppendLine();
-            sb.AppendLine("Legend: █ = Room walls, ║ = Water pipes, ● = Sprinklers");
-            sb.AppendLine();
-
-            return sb.ToString();
-        }
-
-
-        /// <summary>
-        /// Draw a line on the ASCII grid using Bresenham-like algorithm
-        /// </summary>
-        private void DrawLine(char[,] grid, Point p1, Point p2, double minX, double minY,
-                             double scaleX, double scaleY, int width, int height, char symbol)
+        foreach (var sp in result.SprinklerPositions)
         {
-            var x1 = (int)Math.Round((p1.X - minX) * scaleX);
-            var y1 = (int)Math.Round((p1.Y - minY) * scaleY);
-            var x2 = (int)Math.Round((p2.X - minX) * scaleX);
-            var y2 = (int)Math.Round((p2.Y - minY) * scaleY);
-
-            var dx = Math.Abs(x2 - x1);
-            var dy = Math.Abs(y2 - y1);
-            var steps = Math.Max(dx, dy);
-
-            if (steps == 0) return;
-
-            for (int i = 0; i <= steps; i++)
-            {
-                var x = x1 + (x2 - x1) * i / steps;
-                var y = y1 + (y2 - y1) * i / steps;
-
-                if (x >= 0 && x < width && y >= 0 && y < height)
-                    grid[height - 1 - y, x] = symbol; // Flip Y coordinate
-            }
+            sprinklers.Points.Add(new ScatterPoint(sp.X, sp.Y));
         }
+        plotModel.Series.Add(sprinklers);
+
+        // --- Axes ---
+        plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "X" });
+        plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Y" });
+
+        // --- Export to PNG ---
+        var pngExporter = new OxyPlot.SkiaSharp.PngExporter { Width = 800, Height = 600 };
+        using var stream = File.OpenWrite(outputFilePath);
+        pngExporter.Export(plotModel, stream);
+
+        Console.WriteLine($"OxyPlot visualization saved to {outputFilePath}");
     }
+
+/*    public void ShowPlot(
+        SprinklerLayoutResults result,
+        List<SprinklerOptimization.Models.Point> roomCorners,
+        List<Pipe> waterPipes)
+    {
+        var plotModel = new PlotModel { Title = "Sprinkler Layout" };
+        plotModel.Background = OxyColors.White;
+
+        // Room boundary polygon
+        var roomPolygon = new PolygonAnnotation
+        {
+            Stroke = OxyColors.Black,
+            StrokeThickness = 2,
+            Fill = OxyColors.Undefined
+        };
+        foreach (var pt in roomCorners)
+            roomPolygon.Points.Add(new DataPoint(pt.X, pt.Y));
+        roomPolygon.Points.Add(new DataPoint(roomCorners[0].X, roomCorners[0].Y)); // Close polygon
+        plotModel.Annotations.Add(roomPolygon);
+
+        // Water pipes as lines
+        foreach (var pipe in waterPipes)
+        {
+            var lineSeries = new LineSeries
+            {
+                Color = OxyColors.Blue,
+                StrokeThickness = 3,
+                MarkerType = MarkerType.None,
+            };
+            lineSeries.Points.Add(new DataPoint(pipe.Start.X, pipe.Start.Y));
+            lineSeries.Points.Add(new DataPoint(pipe.End.X, pipe.End.Y));
+            plotModel.Series.Add(lineSeries);
+        }
+
+        // Sprinklers as scatter points
+        var sprinklers = new ScatterSeries
+        {
+            MarkerFill = OxyColors.Red,
+            MarkerType = MarkerType.Circle,
+            MarkerSize = 5
+        };
+        foreach (var sp in result.SprinklerPositions)
+        {
+            sprinklers.Points.Add(new ScatterPoint(sp.X, sp.Y));
+        }
+        plotModel.Series.Add(sprinklers);
+
+        // Axes
+        plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "X" });
+        plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Y" });
+
+        // Create and show the Windows Form with PlotView
+        var form = new System.Windows.Forms.Form
+        {
+            Text = "Sprinkler Layout Visualization",
+            Width = 800,
+            Height = 600
+        };
+
+        var plotView = new PlotView
+        {
+            Dock = System.Windows.Forms.DockStyle.Fill,
+            Model = plotModel
+        };
+
+        form.Controls.Add(plotView);
+
+        // Run the form (this blocks until window closed)
+        System.Windows.Forms.Application.Run(form);
+    }*/
 }

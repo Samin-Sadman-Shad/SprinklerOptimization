@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static SprinklerOptimization.Enums.Enums;
+using Point = SprinklerOptimization.Models.Point;
 
 namespace SprinklerOptimization
 {
@@ -109,7 +110,8 @@ namespace SprinklerOptimization
                         Console.WriteLine($"Generating report for {result.StrategyUsed}");
                         var detailedReport = _reportService.GenerateDetailedReport(result);
                         Console.WriteLine(detailedReport);
-
+                         _visualizationService.Generate2DVisualization(result, roomCorners, waterPipes);
+                        //Console.WriteLine(visualization);
                     }
 
                 }
