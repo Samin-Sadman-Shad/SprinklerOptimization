@@ -54,6 +54,8 @@ Creates systematic grid-based sprinkler placement:
   Maintains wall clearances<br/>
 
 <img width="571" height="390" alt="grid_layout2" src="https://github.com/user-attachments/assets/6676dae6-6089-442e-8b22-9075fa3ac909" />
+<img width="800" height="600" alt="SprinklerLayout2DGrid" src="https://github.com/user-attachments/assets/e838568c-2f4b-43a9-b176-ee7ef7bb8b4e" />
+
 
 
 2. Optimized Coverage Strategy
@@ -75,6 +77,8 @@ while iteration < maxIterations:<br/>
 return sprinklers<br/>
 
 <img width="571" height="390" alt="coverage_optimization5" src="https://github.com/user-attachments/assets/935d1c75-4a77-4730-a73b-0c35c55bedb7" />
+<img width="800" height="600" alt="SprinklerLayout2DMaximumCoverage" src="https://github.com/user-attachments/assets/72138481-dc39-4365-a4e0-4994c8394be4" />
+
 
 
 3. Pipe Proximity Strategy
@@ -86,5 +90,7 @@ Minimizes connection distances to existing pipes:<br/>
   -greedily adding candidates while enforcing minimum spacing between sprinklers.<br/>
 
 <img width="571" height="391" alt="pipe_proximity" src="https://github.com/user-attachments/assets/b30c5b16-e115-442c-bf32-6584e4295576" />
+<img width="800" height="600" alt="SprinklerLayout2DMinimumPipeDistance" src="https://github.com/user-attachments/assets/7444cf12-656c-4463-943e-71d890d9ba38" />
+
 
 
