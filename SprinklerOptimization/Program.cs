@@ -30,7 +30,9 @@ try
     services.AddSingleton<ISprinklerLayoutService, SprinklerLayoutService>();
     services.AddSingleton<IReportService, ReportService>();
     services.AddSingleton<ISprinklerConfiguration, SprinklerConfiguration>();
+    services.AddSingleton<IVisualizationService, VisualizationService>();
     services.AddSingleton<SprinklerManager>();
+
 
     var serviceProvider = services.BuildServiceProvider();
 

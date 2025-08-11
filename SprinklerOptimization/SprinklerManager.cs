@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SprinklerOptimization.Contracts;
 using SprinklerOptimization.Models;
+using SprinklerOptimization.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace SprinklerOptimization
     {
         private ISprinklerLayoutService _layoutService;
         private IReportService _reportService;
-        public SprinklerManager(ISprinklerLayoutService layoutService, IReportService reportService) 
+        private IVisualizationService _visualizationService;
+        public SprinklerManager(ISprinklerLayoutService layoutService, IReportService reportService, IVisualizationService visual) 
         {
             _layoutService = layoutService;
             _reportService = reportService;
+            _visualizationService = visual;
         }
         public void DesignSprinkler()
         {
@@ -106,6 +109,7 @@ namespace SprinklerOptimization
                         Console.WriteLine($"Generating report for {result.StrategyUsed}");
                         var detailedReport = _reportService.GenerateDetailedReport(result);
                         Console.WriteLine(detailedReport);
+
                     }
 
                 }
