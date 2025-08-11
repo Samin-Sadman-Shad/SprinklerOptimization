@@ -58,8 +58,8 @@ namespace SprinklerOptimization
                 Console.WriteLine($"• Requirements: 2500mm wall clearance, 2500mm sprinkler spacing");
                 Console.WriteLine();
 
-                // PHASE 4: Multi-strategy analysis
-                Console.WriteLine("PHASE 4: MULTI-STRATEGY OPTIMIZATION ANALYSIS");
+                // Multi-strategy analysis
+                Console.WriteLine(" MULTI-STRATEGY OPTIMIZATION ANALYSIS");
                 Console.WriteLine("=============================================");
 
                 var strategies = new[]
@@ -97,7 +97,7 @@ namespace SprinklerOptimization
                 if (validResults.Any())
                 {
                     Console.WriteLine("===================================");
-                    Console.WriteLine("VISUALIZATION AND DETAILED REPORTING");
+                    Console.WriteLine("DETAILED REPORTING");
                     Console.WriteLine("============================================");
 
                     // Generate comprehensive report
