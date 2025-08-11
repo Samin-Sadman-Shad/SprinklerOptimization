@@ -110,7 +110,7 @@ namespace SprinklerOptimization
                         Console.WriteLine($"Generating report for {result.StrategyUsed}");
                         var detailedReport = _reportService.GenerateDetailedReport(result);
                         Console.WriteLine(detailedReport);
-                         _visualizationService.Generate2DVisualization(result, roomCorners, waterPipes);
+                         _visualizationService.Generate2DVisualization(result, roomCorners, waterPipes, $"SprinklerLayout2D{result.StrategyUsed}.png");
                         //Console.WriteLine(visualization);
                     }
 

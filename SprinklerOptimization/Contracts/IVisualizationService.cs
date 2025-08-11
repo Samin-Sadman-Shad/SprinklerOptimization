@@ -15,7 +15,7 @@ namespace SprinklerOptimization.Contracts
         SprinklerLayoutResults result,
         List<Point> roomCorners,
         List<Pipe> waterPipes,
-        string outputFilePath = "SprinklerLayout2D.png");
+        string outputFilePath);
 
 /*        void ShowPlot(
         SprinklerLayoutResults result,
